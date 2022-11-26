@@ -6,6 +6,9 @@
     "@angular/core": "^14.2.0",
     "lodash": "^4.17.21"
   },
+  "scripts": {
+    "build": "ng build ngx-mxstore"
+  },
   "dependencies": {
     "tslib": "^2.3.0"
   },
