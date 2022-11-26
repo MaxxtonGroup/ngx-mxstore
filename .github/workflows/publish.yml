@@ -12,10 +12,9 @@ jobs:
           node-version: 14
       - run: npm install
       - name: Build
-        run: npm run build:prod
+        run: ng build ngx-mxstore
       - uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_TOKEN }}
-          package: ./projects/ngx-mxstore/package.json
 
 
