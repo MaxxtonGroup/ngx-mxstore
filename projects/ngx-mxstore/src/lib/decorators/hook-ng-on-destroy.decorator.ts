@@ -53,9 +53,7 @@ export function OnDestroy$(): PropertyDecorator {
         }
         return this.mxtNgOnDestroyHookSubject.asObservable();
       },
-      set () {
-        console.log('in de setter');
-      }
+      set () {}
     } );
   };
 }

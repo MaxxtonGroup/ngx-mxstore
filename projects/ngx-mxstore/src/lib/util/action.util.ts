@@ -22,7 +22,7 @@ export class ActionUtil {
     actionInstanceNum = actionInstanceNum + 1;
     const actionType = `${ actionInstanceNum }/${ type }`;
 
-    const actionFunction: any = ( payload: T, meta?: ActionMeta ) => {
+    const actionFunction: any = ( payload: T | null = null, meta?: ActionMeta ) => {
       ActionService.pushAction( actionType, payload, meta );
     };
 
@@ -30,7 +30,7 @@ export class ActionUtil {
       value: actionType,
       writable: false
     } );
-    return actionFunction as ( payload: T, meta?: ActionMeta ) => void;
+    return actionFunction as ( payload?: T, meta?: ActionMeta ) => void;
   }
 
   static getContextAwareActions( actions: any, service: StoreService<any> ) {
