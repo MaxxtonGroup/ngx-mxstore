@@ -19,6 +19,7 @@ export { ActionService } from "./action.service";
 export { GlobalStateService } from "./global-state.service";
 export { ReducerUtil } from "./util/reducer.util";
 export { NgxMxstoreModule } from "./ngx-mxstore.module";
+export { EffectTester } from "./testing/effect-tester";
 
 export const assertChange = AssertUtil.assertChange;
 
