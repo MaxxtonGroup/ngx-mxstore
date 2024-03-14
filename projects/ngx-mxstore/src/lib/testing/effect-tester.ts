@@ -2,6 +2,7 @@ import { debounceTime, filter, take, tap, startWith } from 'rxjs/operators';
 import { StoreService } from "../store.service";
 import { Observable, Subscription } from "rxjs";
 import { ActionService, ActionTypeWithPayload } from "../action.service";
+import * as _ from 'lodash';
 
 export class EffectTester {
 
@@ -38,6 +39,10 @@ export class EffectTester {
     this.state = state;
 
     return this;
+  }
+
+  toHaveState<S>( callback: (state: S) => boolean ) {
+    expect(callback(this.service.snapshot)).toBe(true);
   }
 
   run( done: () => void ) {
