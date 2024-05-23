@@ -215,11 +215,11 @@ describe('MyStoreService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        BarrierControlBarrierDashboardStoreService,
+        MyStoreService,
         { provide: ApiService, useValue: apiServiceMock },
       ],
     });
-    service = TestBed.inject(BarrierControlBarrierDashboardStoreService);
+    service = TestBed.inject(MyStoreService);
     effectTester = new EffectTester(service);
   });
   
