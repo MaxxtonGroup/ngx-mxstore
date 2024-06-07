@@ -42,6 +42,13 @@ most recent version of the state.
 
 Via actions we can mutate the state. With selectors we can fetch data from the state.
 
+The idea of ngx-mxstore is that you can have many different stores in your application. They will all be stored in a single global state.
+The reason of this approach is that you can subdivide your application in different parts and keep the state of each part in a separate store.
+
+Sometimes there is a need to have multiple instances of the same store, this is also possible and will be explained in [the advanced-usage chapter](#advanced-usage).
+
+```ts
+
 Ok there are already a couple of terms we need to explain:
 
 ## Terms explained
@@ -107,6 +114,9 @@ addFromUrl( payload, state: CalculatorState ) {
   );
 }
 ```
+
+The effect will be called when an action is dispatched. You normally don't call the effect directly. The effect can return an observable that will be subscribed to.
+You don't have to unsubscribe from the observable, this is done automatically.
 
 ### StoreAware
 A class decorator that allows a Component to connect to a Store based service.
@@ -175,6 +185,167 @@ static getArray(state: MyState): number[] {
   );
 }
 ```
+
+## Helpers
+The library provides a couple of helper functions to make it easier to work with the store.
+
+### ActionUtil.createActionWithSuccessAndFailure and EffectUtil.withActionHandlers
+The createActionWithSuccessAndFailure and the withActionHandlers helper functions can be used together to create an action with a success and failure action, and handle loading as well.
+So, oftentimes you have an effect that calls a service that can either succeed or fail. If you want to handle this consistently, without repeating the same code over and over, you can use these helper functions.
+
+When defining the action you can use the createActionWithSuccessAndFailure function to create an action with a success and failure action.
+Instead of having an action, say: 'fetchUser', the helper functions create four actions: 'fetchUser.start', 'fetchUser.success', 'fetchUser.error' and 'fetchUser.setStatus'
+
+```ts
+// my-store.actions.ts
+export class TemplateEditorActions {
+  
+export const MyActions = {
+  static fetchUser = ActionUtil.createActionWithSuccessAndFailure<number, UserModel>( 'MyActions/fetchUser' );
+};
+```
+
+So now we have four actions that we can use in the store service for the reducers and effects:
+
+```ts
+// my-store.service.ts
+// ..
+
+@Effect( MyActions.fetchUser.start )
+fetchUser( payload: number ) {
+  return EffectUtil.withActionHandlers(
+    () => this.userService.getUser( payload ),
+    MyActions.fetchUser // <-- return the action so that withActionHandlers can handle the success and failure
+  );
+}
+
+@Reducer( MyActions.fetchUser.success )
+onFetchUserSuccess( user: UserModel, state: MyState ) {
+  return { ...state, user };
+}
+```
+
+It is also possible to change the result before passing it on to the success action:
+
+```ts
+@Effect( MyActions.fetchUser.start )
+fetchUser( payload: number ) {
+  return EffectUtil.withActionHandlers(
+    () => this.userService.getUser( payload ),
+    { 
+      ...MyActions.fetchUser,
+      success: (response: Response<UserModel>) => MyActions.fetchUser.success(response[0]) // <-- change the result before passing it on
+    }
+  );
+}
+```
+
+Examples of the setStatus and error actions:
+
+```ts
+@Reducer( MyActions.fetchUser.setStatus )
+onFetchUserSetStatus( status: EffectStatus, state: MyState ) {
+  return { ...state, fetchUserIsLoading: status === status.Pending };
+}
+
+@Effect( MyActions.fetchUser.error )
+fetchUserError() {
+  this.notifyService.error( 'Failed to fetch user' );
+}
+```
+
+In the setStatus method you see that the type of status is EffectStatus. This is an enum that is provided by the library. The EffectStatus enum is used to represent the status of an effect in the state management system. It is defined in the core/lib/state-management/src/models/effect-status.model.ts file.  Here are the possible values for EffectStatus:  
+IDLE: This status indicates that the effect is idle and not currently in progress. It is the default status of an effect.  
+PENDING: This status indicates that the effect has been triggered and is currently in progress.  
+DONE: This status indicates that the effect has completed successfully.  
+ERROR: This status indicates that an error occurred while executing the effect.  
+
+### ReducerUtil.setLoadingStatusKey
+Because the loading status is a common pattern, the library provides a helper function to set the loading status key in the state. This function can be used as a reducer to set the loading status key in the state.
+
+In the following example the loading status key is set to 'uploadDocumentStatus' when the action 'uploadDocument.setStatus' is dispatched.
+```ts
+// my-store.service
+// ..
+@Reducer(MyActions.uploadDocument.setStatus)
+uploadDocumentStatus = ReducerUtil.setLoadingStatusKey('uploadDocumentStatus');
+```
+
+## Advanced usage
+
+### Limit the triggering of an effect
+Sometimes an effect get triggered multiple times in a short period. In that case it can be useful to limit the triggering of the effect. 
+Most of the times this happens when you have multiple actions that trigger the same effect, and you have no control when these actions are triggered.
+
+In this case you can use the ConfigureEffectHandler decorator to limit the triggering of the effect. The decorator takes an object with the following properties:
+- takeLatest: boolean - If true, the effect will only be triggered when the last action is triggered. If false, the effect will be triggered for every action.
+- delayTime: number - The time in milliseconds that the effect will be delayed. If the effect is triggered multiple times in the delayTime, only the last effect will be triggered.
+
+```ts
+@Effect( MyActions.urlChange.start )
+@Effect( MyActions.buttonClick.start )
+@ConfigureEffectHandler({ takeLatest: true, delayTime: 100 })
+myEffect( payload, state: MyState ) {
+  return this.urlService.getNumberFromUrl().pipe(
+    tap((numberFromUrl) => MyActions.urlChange.success(numberFromUrl))
+  );
+}
+```
+
+### Listen to an action outside the store service
+Sometimes you want to listen to an action outside the store service. Most of the time this is not necessary, and you should use this with care.
+Normally you should handle actions inside the store service, but sometimes there are limitations you can't work around.
+
+In this case you can use the ActionService to listen to an action. The ActionService is a singleton that can be used to listen to actions from anywhere in the application.
+
+```ts
+// Listen to an action in a component
+ActionService.onAction$( TemplateActions.createNewTemplateDraftVersion.success )
+  .pipe( takeUntil( this.onDestroy$ ), delay( 100 ) ).subscribe( () => {
+    this.resetDraftChangeToDefault();
+    this.resetTemplateValues();
+} );
+```
+
+### Cancel an effect
+When an effect is triggered, it will run until it is completed. Sometimes you want to cancel an effect when a specific action is triggered. In this case you can use the takeUntil operator to cancel the effect.
+
+```ts
+@Effect( StoreActions.startExecutionOfRequest.start )
+startExecution( payload: { property: number } ) {
+
+  return EffectUtil.withActionHandlers(
+    () => of( null )
+      .pipe(
+        delay( 100 ),
+        mergeMap( () => this.myService.getSomethingFromBackend( payload.property ) ),
+        mergeMap( ( result: MyModel ) => {
+          return this.myOtherService.getSomethingFromLocalStorage( result.id );
+        } ),
+        takeUntil( ActionUtil.onFirstAction$(
+          StoreActions.startOtherExecutionOfRequest.start
+        ) )
+      ),
+    {
+      ...StoreActions.startExecutionOfRequest,
+    }
+  );
+}
+```
+
+### Having multiple instances of a store 
+Depending on how you want to structure your application there might be a need to have multiple instances of the same store.
+E.g. when having a component with a store that is used multiple times on the same page.
+
+This is possible by providing the store service at the component level. This way the store service is only available for that component and its children.
+When multiple instances of the same store exists ngx-mxstore will make sure that the state of each store is kept separate, by giving it a unique name.
+
+Be aware that actions being triggered will be listened by all instances of the store. Sometimes this can be a good thing but oftentimes
+you want a certain action only to be listened by a specific instance of the store.
+
+To manage this you can give every instance of the store a unique name that set on the component level. Then give every
+action a context that is the same as the unique name of the store. In the effects and reducers you can check if the context
+is the same as the unique name of the store.
 
 ## Testing
 
