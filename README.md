@@ -47,8 +47,6 @@ The reason of this approach is that you can subdivide your application in differ
 
 Sometimes there is a need to have multiple instances of the same store, this is also possible and will be explained in [the advanced-usage chapter](#advanced-usage).
 
-```ts
-
 Ok there are already a couple of terms we need to explain:
 
 ## Terms explained
