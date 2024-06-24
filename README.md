@@ -3,7 +3,7 @@
 ## Installation
 
 ```
-npm install @ngx-mxstore
+npm install -s ngx-mxstore
 ```
 
 ## Purpose of the ngx-mxstore
