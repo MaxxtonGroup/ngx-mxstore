@@ -269,6 +269,24 @@ In the following example the loading status key is set to 'uploadDocumentStatus'
 uploadDocumentStatus = ReducerUtil.setLoadingStatusKey('uploadDocumentStatus');
 ```
 
+## Debugging
+From the console it is possible to check which actions are fired or to check what data is in the store.
+
+To see which actions are being fired type the following in the console, and hit <enter>
+```
+__ACTIONS.debugMode = 1; 
+```
+
+You can also check when the contents of the store changes:
+```
+__STATE.debugMode = 1
+```
+
+When you want to see the current contents of the store:
+```
+__STATE.snapshot
+```
+
 ## Advanced usage
 
 ### Limit the triggering of an effect
