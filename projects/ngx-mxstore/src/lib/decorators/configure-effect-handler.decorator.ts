@@ -11,7 +11,8 @@ export function ConfigureEffectHandler( config: { delayTime?: number, takeLatest
   return ( target: Object, propertyKey: string | symbol ) => {
     const defaultConfig = { delayTime: 300, takeLatest: true };
     // register the action handler to the target (handling this action is done by the store service).
-    if ( (target as StoreService<any>).effectHandlerConfig && (target as StoreService<any>).effectHandlerConfig[ String(propertyKey) ] ) {
+
+    if ( (target as StoreService<any>).effectHandlerConfig && (target as StoreService<any>).effectHandlerConfig?.[ String(propertyKey) ] ) {
       console.error(`Unable to add ConfigureEffectHandler to ${String(propertyKey)}, this effecthandler has already been configured`);
     } else {
       // register the action handler to the target (handling this action is done by the store service).

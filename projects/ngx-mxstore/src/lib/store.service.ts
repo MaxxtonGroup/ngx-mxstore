@@ -13,7 +13,7 @@ export class StoreService<S extends object> {
 
   // gets injected by decorator
   public actionHandlers: { [key: string]: any; } | undefined;
-  public effectHandlerConfig: { [ key: string ]: { delayTime: number, takeLatest: boolean } } = {};
+  public effectHandlerConfig: { [ key: string ]: { delayTime: number, takeLatest: boolean } } | undefined;// = {};
   public effectHandlers: { [key: string]: Array<any>; } | undefined;// = {};
 
 
