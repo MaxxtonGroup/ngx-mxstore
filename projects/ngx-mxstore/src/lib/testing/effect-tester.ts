@@ -34,7 +34,7 @@ export class EffectTester {
     return this;
   }
 
-  withState<S>( state: S ) {
+  withState<S extends Partial<S>>( state: S ) {
     this.service.setState( state );
     this.state = state;
 
@@ -55,7 +55,7 @@ export class EffectTester {
 
     ActionService.onActions$().pipe(
       // we only test the actions that have been added to this test, all other actions will be ignored.
-      startWith( { type: null, payload: null } as ActionTypeWithPayload ),
+      startWith( { type: null, payload: null } as unknown as ActionTypeWithPayload ),
       filter( ( action: ActionTypeWithPayload ) => this.actionTypes.length > 0 ? this.actionTypes.some( type => action.type === type ) : true ),
       tap( ( action: ActionTypeWithPayload ) => {
         calledActions.push( action );
