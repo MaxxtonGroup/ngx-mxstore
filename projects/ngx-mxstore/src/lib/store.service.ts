@@ -166,11 +166,17 @@ export class StoreService<S extends object> {
               { subject: 'payload', log: StoreLoggingUtil.clonePayload( action.payload ) },
             ], false, false );
           }
-          const result: Observable<any> | null = ( this as any )[ effectMethodKey ]( action.payload, snapShot, {
-            action: action.type.toString(),
-            previousState: initialState,
-            ...( action.meta ? action.meta : {} )
-          } );
+          let result: Observable<any> | null = null;
+
+          const effectMethod = (this as any)[effectMethodKey];
+
+          if (typeof effectMethod === 'function') {
+            result = effectMethod(action.payload, snapShot, {
+              action: action.type.toString(),
+              previousState: initialState,
+              ...(action.meta ? action.meta : {})
+            });
+          }
 
           const noop = () => {
           };
