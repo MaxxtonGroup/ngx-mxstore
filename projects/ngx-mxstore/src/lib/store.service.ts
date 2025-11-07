@@ -169,9 +169,8 @@ export class StoreService<S extends object> {
           let result: Observable<any> | null = null;
 
           const effectMethod = (this as any)[effectMethodKey];
-
           if (typeof effectMethod === 'function') {
-            result = effectMethod(action.payload, snapShot, {
+            result = effectMethod.call(this, action.payload, snapShot, {
               action: action.type.toString(),
               previousState: initialState,
               ...(action.meta ? action.meta : {})
