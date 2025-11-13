@@ -7,12 +7,13 @@ import { Inject, Injectable, isDevMode, NgZone, Optional } from '@angular/core';
 import _ from "lodash";
 import { ObjectUtil } from './util/object.util';
 import { MX_STORE_INITIAL_STATE, MX_STORE_STORE_ID } from "./tokens";
+import { ReducerHandler } from "./decorators/reducer.decorator";
 
 @Injectable()
 export class StoreService<S extends object> {
 
   // gets injected by decorator
-  public actionHandlers: { [key: string]: any; } | undefined;
+  public actionHandlers: { [key: string]: ReducerHandler[] | string | symbol | undefined; } | undefined;
   public effectHandlerConfig: { [ key: string ]: { delayTime: number, takeLatest: boolean } } | undefined;// = {};
   public effectHandlers: { [key: string]: Array<any>; } | undefined;// = {};
 
@@ -124,32 +125,63 @@ export class StoreService<S extends object> {
       const initialState = { ...this.snapshot };
       // handle direct state manipulation
       if ( action && this.actionHandlers && this.actionHandlers[ actionType ] ) {
+        const reducerHandlers = this.actionHandlers[ actionType ];
 
+        // Handle both old format (single propertyKey) and new format (array)
+        let handlersArray: ReducerHandler[] = [];
+        if (Array.isArray(reducerHandlers)) {
+          handlersArray = reducerHandlers;
+        } else if (reducerHandlers) {
+          // Old format: single reducer without priority
+          handlersArray = [{ propertyKey: reducerHandlers as string | symbol, priority: 0 }];
+        }
+
+        if (handlersArray.length === 0) {
+          return;
+        }
+
+        // Execute reducers sequentially in priority order
+        let currentState = initialState;
         let debugSubject = `REDUCER RAN FOR ACTION ${ action.type }`;
-        let result: Partial<S> = initialState;
-        try {
-          result = ( this as any )[ this.actionHandlers[ actionType ] ]( action.payload, initialState );
-        } catch ( e: any ) {
-          if ( !( e.hasOwnProperty( 'type' ) && e.type === 'StateNotChangedError' ) ) {
-            throw( e );
+
+        for (const handler of handlersArray) {
+          try {
+            const reducerMethod = (this as any)[handler.propertyKey];
+            if (typeof reducerMethod === 'function') {
+              const reducerResult = reducerMethod.call(this, action.payload, currentState);
+
+              // Merge the reducer result into current state
+              if (reducerResult && typeof reducerResult === 'object') {
+                currentState = { ...currentState, ...reducerResult };
+              } else if (reducerResult !== undefined && reducerResult !== null) {
+                // If reducer returns a non-object, use it as the new state
+                currentState = reducerResult;
+              }
+
+              if (ActionService.debugEnabled) {
+                StoreLoggingUtil.log( LogType.REDUCER, debugSubject, [
+                  { subject: 'method', log: `${ this.constructor.name }.${ String(handler.propertyKey) }` },
+                  { subject: 'priority', log: handler.priority },
+                  { subject: 'payload', log: StoreLoggingUtil.clonePayload( action.payload ) },
+                  { subject: 'result', log: reducerResult },
+                ] );
+              }
+            }
+          } catch ( e: any ) {
+            if ( !( e.hasOwnProperty( 'type' ) && e.type === 'StateNotChangedError' ) ) {
+              throw( e );
+            }
+            debugSubject = `REDUCER IGNORED FOR ACTION ${ action.type }`;
           }
-          debugSubject = `REDUCER IGNORED FOR ACTION ${ action.type }`;
         }
 
-        if ( ActionService.debugEnabled ) {
-          StoreLoggingUtil.log( LogType.REDUCER, debugSubject, [
-            { subject: 'method', log: `${ this.constructor.name }.${ this.actionHandlers[ action.type ] }` },
-            { subject: 'payload', log: StoreLoggingUtil.clonePayload( action.payload ) },
-            { subject: 'result', log: result },
-          ] );
-        }
-
-        if ( result && result != initialState ) {
+        // Update state once after all reducers have run
+        if ( currentState && currentState !== initialState ) {
           if ( NgZone.isInAngularZone() ) {
-            this.setState( result, actionType );
+            this.setState( currentState, actionType );
           } else {
             this.ngZone.run( () => {
-              this.setState( result, actionType );
+              this.setState( currentState, actionType );
             } );
           }
         }
