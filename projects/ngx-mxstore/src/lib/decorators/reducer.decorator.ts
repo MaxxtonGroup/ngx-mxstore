@@ -7,22 +7,11 @@ export interface ReducerHandler {
 
 export function Reducer(action: any, priority?: number): PropertyDecorator {
   return ( target: Object, propertyKey: string | symbol ) => {
-    const targetStoreService = target.constructor as unknown as StoreService<any>;
-
     // Default priority is 0 if not specified
     const reducerPriority = priority !== undefined ? priority : 0;
 
-    // Initialize actionHandlers if it doesn't exist
-    if (!targetStoreService.actionHandlers) {
-      Object.defineProperty( target, 'actionHandlers', {
-        enumerable: true,
-        configurable: true,
-        value: {}
-      });
-    }
-
-    // Get existing handlers for this action type
-    const existingHandlers = targetStoreService.actionHandlers?.[action.ACTION_TYPE];
+    // Get existing handlers
+    const existingHandlers = (target as StoreService<any>).actionHandlers?.[action.ACTION_TYPE];
     let handlersArray: ReducerHandler[] = [];
 
     // Handle both old format (single propertyKey) and new format (array)
