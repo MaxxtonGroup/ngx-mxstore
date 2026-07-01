@@ -1,5 +1,6 @@
 import { ActionService } from "./action.service";
 import { GlobalStateService } from "./global-state.service";
+import { DevToolsService } from "./dev-tools.service";
 import { AssertUtil } from './util/assert.util';
 
 export { Action } from './decorators/action.decorator';
@@ -17,6 +18,7 @@ export { AssertUtil, StateNotChangedError } from "./util/assert.util";
 export { EffectStatus, CrudEffectStatus, ActionMeta, CrudEffectStringStatus } from './models/index';
 export { ActionService } from "./action.service";
 export { GlobalStateService } from "./global-state.service";
+export { DevToolsService, DevToolsOptions } from "./dev-tools.service";
 export { ReducerUtil } from "./util/reducer.util";
 export { NgxMxstoreModule } from "./ngx-mxstore.module";
 export { EffectTester } from "./testing/effect-tester";
@@ -27,10 +29,14 @@ const enableDebugState = GlobalStateService.enableDebugInfo;
 const disableDebugState = GlobalStateService.disableDebugInfo;
 const enableDebugActions = ActionService.enableDebugInfo;
 const disableDebugActions = ActionService.disableDebugInfo;
+const enableDevTools = DevToolsService.enable;
+const disableDevTools = DevToolsService.disable;
 
 export const stateManagementTools = {
   enableDebugState,
   enableDebugActions,
   disableDebugActions,
   disableDebugState,
+  enableDevTools,
+  disableDevTools,
 };
