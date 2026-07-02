@@ -139,5 +139,5 @@ class _GlobalStateService {
 
 export const GlobalStateService: typeof _GlobalStateService = ( window as any ).__STATE || _GlobalStateService;
 
-( window as any ).__STATE = _GlobalStateService;
+( window as any ).__STATE = GlobalStateService;
 

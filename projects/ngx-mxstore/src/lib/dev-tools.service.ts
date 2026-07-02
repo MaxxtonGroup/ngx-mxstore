@@ -104,4 +104,4 @@ class _DevToolsService {
 
 export const DevToolsService: typeof _DevToolsService = ( window as any ).__DEVTOOLS || _DevToolsService;
 
-( window as any ).__DEVTOOLS = _DevToolsService;
+( window as any ).__DEVTOOLS = DevToolsService;
