@@ -287,6 +287,25 @@ When you want to see the current contents of the store:
 __STATE.snapshot
 ```
 
+### Redux DevTools
+ngx-mxstore can connect to the [Redux DevTools browser extension](https://github.com/reduxjs/redux-devtools), so you can inspect dispatched actions, view state diffs and time-travel through your application's state.
+
+Call `enableDevTools()` once during application startup (e.g. in `main.ts` or in your root component):
+```ts
+import { stateManagementTools } from 'ngx-mxstore';
+
+stateManagementTools.enableDevTools();
+```
+
+To disconnect again:
+```ts
+stateManagementTools.disableDevTools();
+```
+
+This requires the Redux DevTools browser extension to be installed. If it is not present, a warning is logged to the console and nothing else happens.
+
+Note: time-travel via "jump to action/state", "commit", "rollback", "reset" and "import state" is supported and directly overwrites the store's state. Since effects in ngx-mxstore are not pure functions of `(state, action)`, replaying actions on top of an older state (rather than jumping to a previously recorded state) is not supported.
+
 ## Advanced usage
 
 ### Limit the triggering of an effect

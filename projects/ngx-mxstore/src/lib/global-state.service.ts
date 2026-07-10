@@ -4,11 +4,12 @@ import { LogType, StoreLoggingUtil } from "./util/store-logging.util";
 import _ from 'lodash/fp';
 import {StringUtil} from './util/string.util';
 
-export class GlobalStateService {
+// tslint:disable-next-line:class-name
+class _GlobalStateService {
   private static globalState: { [ key: string ]: any } = {};
-  private static readonly globalStateChanges = new BehaviorSubject<any>( GlobalStateService.globalState );
+  private static readonly globalStateChanges = new BehaviorSubject<any>( _GlobalStateService.globalState );
   private static debugMode: boolean = false;
-  private static readonly globalStateChangesObs$ = GlobalStateService.globalStateChanges.asObservable().pipe(
+  private static readonly globalStateChangesObs$ = _GlobalStateService.globalStateChanges.asObservable().pipe(
     debounceTime( 20 ), // make sure state is stable for at least 20ms before we push an update to the interface.
     share(),
   );
@@ -135,6 +136,8 @@ export class GlobalStateService {
   }
 
 }
+
+export const GlobalStateService: typeof _GlobalStateService = ( window as any ).__STATE || _GlobalStateService;
 
 ( window as any ).__STATE = GlobalStateService;
 

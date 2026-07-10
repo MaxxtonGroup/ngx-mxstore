@@ -66,5 +66,5 @@ class _ActionService {
 
 export const ActionService: typeof _ActionService = (window as any).__ACTIONS || _ActionService;
 
-(window as any).__ACTIONS = _ActionService;
+(window as any).__ACTIONS = ActionService;
 
