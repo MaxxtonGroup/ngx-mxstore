@@ -90,7 +90,7 @@ export class EffectTester {
         this.actionsNotCalled.forEach( ( action: any ) => {
           const hasBeenCalled = calledActions.some( calledAction => calledAction.type === action );
           if ( hasBeenCalled ) {
-            expect( `action ${action} was called where it was expected not to be called` ).toBe( false );
+            expect( `action ${action} was called where it was expected not to be called` as unknown ).toBe( false );
           } else {
             expect( true ).toBe( true );
           }
