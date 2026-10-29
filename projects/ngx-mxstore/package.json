@@ -1,14 +1,14 @@
 {
   "name": "ngx-mxstore",
-  "version": "21.1.0",
+  "version": "22.0.0",
   "author": "Maxxton Group",
   "repository": {
     "type": "git",
     "url": "https://github.com/MaxxtonGroup/ngx-mxstore.git"
   },
   "peerDependencies": {
-    "@angular/common": "^21",
-    "@angular/core": "^21",
+    "@angular/common": "^22",
+    "@angular/core": "^22",
     "lodash": "^4.17.21"
   },
   "scripts": {
@@ -19,6 +19,6 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.188",
-    "typescript": "~5.9.0"
+    "typescript": "~6.0.3"
   }
 }
